@@ -1,6 +1,6 @@
 [package]
 name = "bcoin"
-authors = "Arjan van Eersel <hi@vaneersel.me>"
+authors = ["Arjan van Eersel <hi@vaneersel.me>"]
 license = "AGPL-3.0-or-later"
 version = "0.1.0"
 edition = "2021"
