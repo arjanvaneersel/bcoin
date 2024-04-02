@@ -1,3 +1,5 @@
+use num::One;
+
 /// A finite field
 ///
 /// The mathematical definition of a finite field is:
@@ -17,8 +19,8 @@ where
         + std::cmp::PartialEq
         + std::cmp::PartialOrd
         + std::fmt::Debug
-        + std::ops::Add
-        + std::ops::Sub,
+        + std::ops::Add<Output = T>
+        + std::ops::Mul<Output = T>,
 {
     pub fn new(num: T, prime: T) -> FieldElement<T> {
         if num >= prime || num < T::default() {
@@ -37,11 +39,13 @@ where
         + std::cmp::PartialEq
         + std::cmp::PartialOrd
         + std::fmt::Debug
-        + std::ops::Add
-        + std::ops::Sub,
+        + std::ops::Add<Output = T>
+        + std::ops::Mul<Output = T>
+        + One,
 {
     fn from(value: T) -> Self {
-        FieldElement::new(value.clone(), value)
+        let prime = value.clone() + One::one();
+        FieldElement::new(value, prime)
     }
 }
 
@@ -65,17 +69,24 @@ where
         + std::cmp::PartialOrd
         + std::fmt::Debug
         + std::ops::Add<Output = T>
-        + std::ops::Sub<Output = T>,
+        + std::ops::Mul<Output = T>
+        + Clone
+        + One,
 {
     type Output = FieldElement<T>;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let prime = match self.1 >= rhs.1 {
+        let highest_prime = match self.1 >= rhs.1 {
             true => self.1,
             false => rhs.1,
         };
 
-        let num = self.0 + rhs.0;
+        let num = self.0.clone() + rhs.0.clone();
+
+        let prime = match num > highest_prime {
+            true => num.clone() + One::one(),
+            false => highest_prime,
+        };
 
         FieldElement::new(num, prime)
     }
@@ -97,9 +108,11 @@ mod tests {
     #[test]
     fn add_works() {
         let a = FieldElement::new(10, 25);
-        let b = FieldElement::new(10, 10);
+        let b = FieldElement::new(12, 13);
+
+        assert!(a != b);
 
         let result = a + b;
-        assert_eq!(result, 20.into());
+        assert_eq!(result, 22.into());
     }
 }
