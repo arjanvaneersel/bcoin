@@ -1,5 +1,30 @@
 use num::One;
 
+/// Supertrait that numbers for FieldElement need to implement.
+pub trait Number<T>:
+    Default
+    + Clone
+    + std::cmp::PartialEq
+    + std::cmp::PartialOrd
+    + std::fmt::Debug
+    + std::ops::Add<Output = T>
+    + std::ops::Sub<Output = T>
+    + One
+{
+}
+
+impl<T> Number<T> for T where
+    T: Default
+        + Clone
+        + std::cmp::PartialEq
+        + std::cmp::PartialOrd
+        + std::fmt::Debug
+        + std::ops::Add<Output = T>
+        + std::ops::Sub<Output = T>
+        + One
+{
+}
+
 /// A finite field
 ///
 /// The mathematical definition of a finite field is:
@@ -15,12 +40,7 @@ pub struct FieldElement<T>(T, T);
 // Constructor with trait bounds.
 impl<T> FieldElement<T>
 where
-    T: Default
-        + std::cmp::PartialEq
-        + std::cmp::PartialOrd
-        + std::fmt::Debug
-        + std::ops::Add<Output = T>
-        + std::ops::Mul<Output = T>,
+    T: Number<T>,
 {
     pub fn new(num: T, prime: T) -> FieldElement<T> {
         if num >= prime || num < T::default() {
@@ -34,14 +54,7 @@ where
 // Implement the From trait for easy casting from numbers into FieldElement.
 impl<T> From<T> for FieldElement<T>
 where
-    T: Default
-        + Clone
-        + std::cmp::PartialEq
-        + std::cmp::PartialOrd
-        + std::fmt::Debug
-        + std::ops::Add<Output = T>
-        + std::ops::Mul<Output = T>
-        + One,
+    T: Number<T>,
 {
     fn from(value: T) -> Self {
         let prime = value.clone() + One::one();
@@ -64,14 +77,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for FieldElement<T> {
 // Implement the add operator.
 impl<T> std::ops::Add for FieldElement<T>
 where
-    T: Default
-        + std::cmp::PartialEq
-        + std::cmp::PartialOrd
-        + std::fmt::Debug
-        + std::ops::Add<Output = T>
-        + std::ops::Mul<Output = T>
-        + Clone
-        + One,
+    T: Number<T>,
 {
     type Output = FieldElement<T>;
 
