@@ -157,7 +157,7 @@ where
     }
 }
 
-// Implement the mul operator.
+// Implement the div operator.
 impl<T> std::ops::Div for FieldElement<T>
 where
     T: Number<T>,
