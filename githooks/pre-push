@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -eu
+
+if ! cargo clippy --all-targets -- -D warnings
+then
+    echo "Fix clippy issues."
+    exit 1
+fi
+
+if ! cargo test --tests
+then
+    echo "Fix test issues."
+    exit 1
+fi
+
+exit 0
