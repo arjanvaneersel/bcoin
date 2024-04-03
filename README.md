@@ -1,4 +1,4 @@
-# BCoin [![CircleCI](https://dl.circleci.com/status-badge/img/gh/arjanvaneersel/bcoin/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/arjanvaneersel/bcoin/tree/main) [![codecov](https://codecov.io/gh/arjanvaneersel/bcoin/graph/badge.svg?token=4T6P2UV9OA)](https://codecov.io/gh/arjanvaneersel/bcoin) [![Tests](https://github.com/arjanvaneersel/bcoin/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/arjanvaneersel/bcoin/actions/workflows/tests.yml)
+# BCoin [![CircleCI](https://circleci.com/gh/arjanvaneersel/bcoin.svg?style=shield)](https://circleci.com/gh/arjanvaneersel/bcoin.svg?style=shield) [![codecov](https://codecov.io/gh/arjanvaneersel/bcoin/graph/badge.svg?token=4T6P2UV9OA)](https://codecov.io/gh/arjanvaneersel/bcoin) [![Tests](https://github.com/arjanvaneersel/bcoin/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/arjanvaneersel/bcoin/actions/workflows/tests.yml)
 
 Copyright (c) 2024, Arjan van Eersel.
 
