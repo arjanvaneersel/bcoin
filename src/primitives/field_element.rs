@@ -78,7 +78,7 @@ where
         }
 
         // Ensure a positive exponent.
-        let n = T::from(exp.rem_euclid(&(self.1 - T::one())));
+        let n = exp.rem_euclid(&(self.1 - T::one()));
 
         // Calculate while capping to prime.
         dbg!(self.0, n, self.1);
@@ -115,7 +115,7 @@ where
         }
 
         // Add the numbers while capping to the prime value.
-        let num = (self.0 + rhs.0) % self.1.clone();
+        let num = (self.0 + rhs.0) % self.1;
         FieldElement::new(num, self.1)
     }
 }
@@ -133,7 +133,7 @@ where
             panic!("Sides are of different fields")
         }
 
-        let num = (self.0 - rhs.0) % self.1.clone();
+        let num = (self.0 - rhs.0) % self.1;
         FieldElement::new(num, self.1)
     }
 }
@@ -152,7 +152,7 @@ where
         }
 
         // Multiply the numbers while capping to the prime value.
-        let num = (self.0 * rhs.0) % self.1.clone();
+        let num = (self.0 * rhs.0) % self.1;
         FieldElement::new(num, self.1)
     }
 }
@@ -177,7 +177,7 @@ where
         // this means:
         // 1/n == pow(n, p-2, p)
         // we return an element of the same class
-        let num = self.0 * mod_exp(rhs.0, self.1.clone() - two, self.1.clone()) % self.1.clone();
+        let num = self.0 * mod_exp(rhs.0, self.1 - two, self.1) % self.1;
         FieldElement::new(num, self.1)
     }
 }
