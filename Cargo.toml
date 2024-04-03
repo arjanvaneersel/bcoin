@@ -10,3 +10,8 @@ edition = "2021"
 [dependencies]
 mod_exp = "1.0.1"
 num = "0.4.1"
+
+[features]
+default = []
+all = ["signed_field_elements"]
+signed_field_elements = []

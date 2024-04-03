@@ -2,7 +2,7 @@ use mod_exp::mod_exp;
 use num::{traits::Euclid, One, Zero};
 
 /// Supertrait that numbers for FieldElement need to implement.
-pub trait Number<T>:
+pub trait Number:
     Default
     + Clone
     + Copy
@@ -14,16 +14,17 @@ pub trait Number<T>:
     + num::Bounded
     + num::Num
     + std::fmt::Debug
-    + std::ops::Add<T, Output = T>
-    + std::ops::Sub<T, Output = T>
-    + std::ops::Mul<T, Output = T>
-    + std::ops::Div<T, Output = T>
-    + std::ops::Rem<T, Output = T>
-    + std::ops::Shr<T, Output = T>
+    + std::ops::Add<Self, Output = Self>
+    + std::ops::Sub<Self, Output = Self>
+    + std::ops::Mul<Self, Output = Self>
+    + std::ops::Div<Self, Output = Self>
+    + std::ops::Rem<Self, Output = Self>
+    + std::ops::Shr<Self, Output = Self>
 {
 }
 
-impl<T> Number<T> for T where
+#[cfg(feature = "signed_field_elements")]
+impl<T> Number for T where
     T: Default
         + Clone
         + Copy
@@ -44,6 +45,22 @@ impl<T> Number<T> for T where
 {
 }
 
+// Implement Number for unsigned primitive types
+macro_rules! impl_number {
+    ($T:ty) => {
+        #[cfg(not(feature = "signed_field_elements"))]
+        impl Number for $T {}
+    };
+}
+
+// By default only unsigned numbers are enabled.
+impl_number!(u8);
+impl_number!(u16);
+impl_number!(u32);
+impl_number!(u64);
+impl_number!(u128);
+impl_number!(usize);
+
 /// A finite field
 ///
 /// The mathematical definition of a finite field is:
@@ -59,7 +76,7 @@ pub struct FieldElement<T>(T, T);
 // Constructor with trait bounds.
 impl<T> FieldElement<T>
 where
-    T: Number<T>,
+    T: Number,
 {
     pub fn new(num: T, prime: T) -> FieldElement<T> {
         FieldElement(num, prime).__pass_if_valid_range()
@@ -113,7 +130,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for FieldElement<T> {
 // Implement the add operator.
 impl<T> std::ops::Add for FieldElement<T>
 where
-    T: Number<T>,
+    T: Number,
 {
     type Output = Self;
 
@@ -135,7 +152,7 @@ where
 // Implement the sub operator.
 impl<T> std::ops::Sub for FieldElement<T>
 where
-    T: Number<T>,
+    T: Number,
 {
     type Output = Self;
 
@@ -156,7 +173,7 @@ where
 // Implement the mul operator.
 impl<T> std::ops::Mul for FieldElement<T>
 where
-    T: Number<T>,
+    T: Number,
 {
     type Output = Self;
 
@@ -178,7 +195,7 @@ where
 // Implement the div operator.
 impl<T> std::ops::Div for FieldElement<T>
 where
-    T: Number<T>,
+    T: Number,
 {
     type Output = Self;
 
@@ -218,162 +235,166 @@ mod tests {
     #[test]
     #[should_panic]
     fn can_not_create_out_of_range_field_element() {
-        FieldElement::new(13, 7);
+        FieldElement::new(13_u8, 7_u8);
     }
 
     #[test]
     fn add_works() {
-        let a = FieldElement(7, 13);
-        let b = FieldElement(12, 13);
-        let c = FieldElement(6, 13);
+        let a = FieldElement(7_u8, 13_u8);
+        let b = FieldElement(12_u8, 13_u8);
+        let c = FieldElement(6_u8, 13_u8);
         assert_eq!(a + b, c);
     }
 
     #[test]
     #[should_panic(expected = "12 is not in field range 0 to 10")]
     fn add_panics_on_lhs_out_of_range() {
-        let a = FieldElement(12, 10);
-        let b = FieldElement(3, 10);
+        let a = FieldElement(12_u8, 10_u8);
+        let b = FieldElement(3_u8, 10_u8);
         let _ = a + b;
     }
 
     #[test]
     #[should_panic(expected = "12 is not in field range 0 to 10")]
     fn add_panics_on_rhs_out_of_range() {
-        let a = FieldElement(12, 10);
-        let b = FieldElement(3, 10);
+        let a = FieldElement(12_u8, 10_u8);
+        let b = FieldElement(3_u8, 10_u8);
         let _ = b + a;
     }
 
     #[test]
     #[should_panic(expected = "Sides are of different fields")]
     fn add_panics_on_different_fields() {
-        let a = FieldElement(7, 13);
-        let b = FieldElement(12, 100);
+        let a = FieldElement(7_u8, 13_u8);
+        let b = FieldElement(12_u8, 100_u8);
         let _ = a + b;
     }
 
     #[test]
     fn sub_works() {
-        let a = FieldElement(35, 40);
-        let b = FieldElement(7, 40);
-        let c = FieldElement(28, 40);
+        let a = FieldElement(35_u8, 40_u8);
+        let b = FieldElement(7_u8, 40_u8);
+        let c = FieldElement(28_u8, 40_u8);
         assert_eq!(a - b, c);
     }
 
     #[test]
     #[should_panic(expected = "12 is not in field range 0 to 10")]
     fn sub_panics_on_lhs_out_of_range() {
-        let a = FieldElement(12, 10);
-        let b = FieldElement(7, 10);
+        let a = FieldElement(12_u8, 10_u8);
+        let b = FieldElement(7_u8, 10_u8);
         let _ = a - b;
     }
 
     #[test]
     #[should_panic(expected = "12 is not in field range 0 to 10")]
     fn sub_panics_on_rhs_out_of_range() {
-        let a = FieldElement(12, 10);
-        let b = FieldElement(7, 10);
+        let a = FieldElement(12_u8, 10_u8);
+        let b = FieldElement(7_u8, 10_u8);
         let _ = b - a;
     }
 
     #[test]
     #[should_panic(expected = "Sides are of different fields")]
     fn sub_panics_on_different_fields() {
-        let a = FieldElement(12, 13);
-        let b = FieldElement(7, 100);
+        let a = FieldElement(12_u8, 13_u8);
+        let b = FieldElement(7_u8, 100_u8);
         let _ = a - b;
     }
 
     #[test]
     fn mul_works() {
-        let a = FieldElement(3, 13);
-        let b = FieldElement(12, 13);
-        let c = FieldElement(10, 13);
+        let a = FieldElement(3_u8, 13_u8);
+        let b = FieldElement(12_u8, 13_u8);
+        let c = FieldElement(10_u8, 13_u8);
         assert_eq!(a * b, c);
     }
 
     #[test]
     #[should_panic(expected = "12 is not in field range 0 to 10")]
     fn mul_panics_on_lhs_out_of_range() {
-        let a = FieldElement(12, 10);
-        let b = FieldElement(7, 10);
+        let a = FieldElement(12_u8, 10_u8);
+        let b = FieldElement(7_u8, 10_u8);
         let _ = a * b;
     }
 
     #[test]
     #[should_panic(expected = "12 is not in field range 0 to 10")]
     fn mul_panics_on_rhs_out_of_range() {
-        let a = FieldElement(12, 10);
-        let b = FieldElement(7, 10);
+        let a = FieldElement(12_u8, 10_u8);
+        let b = FieldElement(7_u8, 10_u8);
         let _ = b * a;
     }
 
     #[test]
     #[should_panic(expected = "Sides are of different fields")]
     fn mul_panics_on_different_fields() {
-        let a = FieldElement(7, 13);
-        let b = FieldElement(12, 100);
+        let a = FieldElement(7_u8, 13_u8);
+        let b = FieldElement(12_u8, 100_u8);
         let _ = a * b;
     }
 
     #[test]
     fn pow_works() {
-        let a = FieldElement(3, 13);
-        let b = FieldElement(1, 13);
-        assert_eq!(a.pow(3), b);
+        let a = FieldElement(3_u8, 13_u8);
+        let b = FieldElement(1_u8, 13_u8);
+        assert_eq!(a.pow(3_u8), b);
 
+        let a = FieldElement(7_u8, 13_u8);
+        let b = FieldElement(1_u8, 13_u8);
+        assert_eq!(a.pow(0_u8), b);
+    }
+
+    #[cfg(feature = "signed_field_elements")]
+    #[test]
+    fn pow_works_with_negative_exponential() {
         let a = FieldElement(7, 13);
         let b = FieldElement(8, 13);
         assert_eq!(a.pow(-3), b);
-
-        let a = FieldElement(7, 13);
-        let b = FieldElement(1, 13);
-        assert_eq!(a.pow(0), b);
     }
 
     #[test]
     #[should_panic(expected = "12 is not in field range 0 to 10")]
     fn pow_panics_on_out_of_range() {
-        let a = FieldElement(12, 10);
-        let _ = a.pow(3);
+        let a = FieldElement(12_u8, 10_u8);
+        let _ = a.pow(3_u8);
     }
 
     #[test]
     fn div_works() {
-        let a = FieldElement(10, 13);
-        let b = FieldElement(2, 13);
-        let c = FieldElement(5, 13);
+        let a = FieldElement(10_u8, 13_u8);
+        let b = FieldElement(2_u8, 13_u8);
+        let c = FieldElement(5_u8, 13_u8);
         assert_eq!(a / b, c);
     }
 
     #[test]
     #[should_panic(expected = "12 is not in field range 0 to 10")]
     fn div_panics_on_lhs_out_of_range() {
-        let a = FieldElement(12, 10);
-        let b = FieldElement(7, 10);
+        let a = FieldElement(12_u8, 10_u8);
+        let b = FieldElement(7_u8, 10_u8);
         let _ = a / b;
     }
 
     #[test]
     #[should_panic(expected = "12 is not in field range 0 to 10")]
     fn div_panics_on_rhs_out_of_range() {
-        let a = FieldElement(12, 10);
-        let b = FieldElement(7, 10);
+        let a = FieldElement(12_u8, 10_u8);
+        let b = FieldElement(7_u8, 10_u8);
         let _ = b / a;
     }
 
     #[test]
     #[should_panic(expected = "Sides are of different fields")]
     fn div_panics_on_different_fields() {
-        let a = FieldElement(12, 13);
-        let b = FieldElement(7, 100);
+        let a = FieldElement(12_u8, 13_u8);
+        let b = FieldElement(7_u8, 100_u8);
         let _ = a / b;
     }
 
     #[test]
     fn debug_and_display_impl_works() {
-        let a = FieldElement(10, 13);
+        let a = FieldElement(10_u8, 13_u8);
         assert_eq!(format!("{:?}", a), "10".to_string());
         assert_eq!(format!("{}", a), "10".to_string());
     }
