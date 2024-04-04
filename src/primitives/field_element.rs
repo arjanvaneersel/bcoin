@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use mod_exp::mod_exp;
 use num::{traits::Euclid, One, Zero};
 
@@ -61,6 +63,22 @@ impl_number!(u64);
 impl_number!(u128);
 impl_number!(usize);
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum Error<T> {
+    NotInRange(T, T),
+}
+
+impl<T: std::fmt::Debug> Display for Error<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Self::NotInRange(v, p) => format!("{:?} is not in field range 0 to {:?}", v, p),
+        };
+        write!(f, "{}", s)
+    }
+}
+
+impl<T: std::fmt::Debug> std::error::Error for Error<T> {}
+
 /// A finite field
 ///
 /// The mathematical definition of a finite field is:
@@ -78,19 +96,26 @@ impl<T> FieldElement<T>
 where
     T: Number,
 {
-    pub fn new(num: T, prime: T) -> FieldElement<T> {
-        FieldElement(num, prime).__pass_if_valid_range()
+    pub fn new(num: T, prime: T) -> Result<FieldElement<T>, Error<T>> {
+        let fe = FieldElement(num, prime);
+        if !fe.has_valid_range(false) {
+            return Err(Error::NotInRange(num, prime));
+        }
+        Ok(fe)
+    }
+
+    fn has_valid_range(&self, panic: bool) -> bool {
+        if self.0 >= self.1 || self.0 < T::default() {
+            if panic {
+                panic!("{:?} is not in field range 0 to {:?}", self.0, self.1);
+            }
+            return false;
+        }
+        true
     }
 
     fn __ensure_valid_range(&self) {
-        if self.0 >= self.1 || self.0 < T::default() {
-            panic!("{:?} is not in field range 0 to {:?}", self.0, self.1);
-        }
-    }
-
-    fn __pass_if_valid_range(self) -> FieldElement<T> {
-        self.__ensure_valid_range();
-        self
+        self.has_valid_range(true);
     }
 
     #[allow(dead_code)]
@@ -143,7 +168,7 @@ where
 
         // Add the numbers while capping to the prime value.
         let num = (self.0 + rhs.0) % self.1;
-        FieldElement::new(num, self.1)
+        FieldElement::new(num, self.1).unwrap()
     }
 }
 
@@ -164,7 +189,7 @@ where
         }
 
         let num = (self.0 - rhs.0) % self.1;
-        FieldElement::new(num, self.1)
+        FieldElement::new(num, self.1).unwrap()
     }
 }
 
@@ -186,7 +211,7 @@ where
 
         // Multiply the numbers while capping to the prime value.
         let num = (self.0 * rhs.0) % self.1;
-        FieldElement::new(num, self.1)
+        FieldElement::new(num, self.1).unwrap()
     }
 }
 
@@ -213,7 +238,7 @@ where
         // this means:
         // 1/n == pow(n, p-2, p)
         let num = self.0 * mod_exp(rhs.0, self.1 - two, self.1) % self.1;
-        FieldElement::new(num, self.1)
+        FieldElement::new(num, self.1).unwrap()
     }
 }
 
@@ -231,9 +256,11 @@ mod tests {
     use super::*;
 
     #[test]
-    #[should_panic]
     fn can_not_create_out_of_range_field_element() {
-        FieldElement::new(13_u8, 7_u8);
+        assert_eq!(
+            FieldElement::new(13_u8, 7_u8),
+            Err(Error::NotInRange(13_u8, 7_u8))
+        );
     }
 
     #[test]
