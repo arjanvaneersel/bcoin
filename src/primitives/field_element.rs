@@ -107,9 +107,7 @@ where
         let n = exp.rem_euclid(&(self.1 - T::one()));
 
         // Calculate while capping to prime.
-        dbg!(self.0, n, self.1);
         let num = mod_exp(self.0, n, self.1);
-        dbg!(num);
 
         FieldElement(num, self.1)
     }
