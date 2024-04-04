@@ -77,7 +77,7 @@ impl<T: Number> Point<T> {
                 }
                 Ok(point)
             }
-            _ => return Err(Error::InvalidPoint),
+            _ => Err(Error::InvalidPoint),
         }
     }
 
@@ -86,16 +86,13 @@ impl<T: Number> Point<T> {
     // When panic is set to true it will raise a panic if the point is
     // invalid.
     fn is_valid(&self, panic: bool) -> bool {
-        match self {
-            Self::Point { a, b, x, y } => {
-                if y.pow(2_u8) != x.pow(3_u8) + *a * *x + *b {
-                    if panic {
-                        panic!("({:?}, {:?}) is not on the curve", x, y)
-                    }
-                    return false;
+        if let Self::Point { a, b, x, y } = self {
+            if y.pow(2_u8) != x.pow(3_u8) + *a * *x + *b {
+                if panic {
+                    panic!("({:?}, {:?}) is not on the curve", x, y)
                 }
+                return false;
             }
-            _ => {}
         }
         true
     }
